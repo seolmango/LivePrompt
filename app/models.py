@@ -23,3 +23,10 @@ class Score(db.Model):
     score_name = db.Column(db.String(128), nullable=False)
     score_music_id = db.Column(db.Integer, db.ForeignKey('music.id'), nullable=False)
     content = db.Column(db.LargeBinary, nullable=False)
+
+class Setlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    setlist_name = db.Column(db.String(128), nullable=False)
+    setlist_users = db.Column(db.Text, nullable=False)
+    setlist_songs = db.Column(db.Text, nullable=False)
+    setlist_data = db.Column(db.Text, nullable=False)
