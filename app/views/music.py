@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect
 from app import db
 import base64
 import json
+import ast
 from app.models import Music, LyricFiles, Score
 bp = Blueprint('music', __name__, url_prefix='/music')
 
@@ -113,3 +114,71 @@ def lyric_edit(lyric_id):
     lyric.content = request.form['content']
     db.session.commit()
     return redirect('/music/lyric/' + str(lyric_id))
+
+@bp.route('/<int:music_id>/addscore', methods=['GET'])
+def add_score(music_id):
+    return render_template('music/addscore.html', music_id=music_id)
+
+@bp.route('/<int:music_id>/addscorepost', methods=['POST'])
+def add_score_post(music_id):
+    files = request.files.getlist('file[]')
+    start_times = request.form.getlist('start_time[]')
+    end_times = request.form.getlist('end_time[]')
+
+    content = []
+    for i in range(len(files)):
+        file = files[i]
+        start_time = start_times[i]
+        end_time = end_times[i]
+        content.append({'file': f"data:{file.mimetype};base64, {base64.b64encode(file.read()).decode('utf-8')}", 'start_time': start_time, 'end_time': end_time})
+    json_content = json.dumps(content)
+    score = Score(score_name=request.form['nickname'], score_music_id=music_id, content=base64.b64encode(json_content.encode('utf-8')))
+
+    db.session.add(score)
+    db.session.commit()
+    return render_template('windowclose.html')
+
+@bp.route('/<int:music_id>/deletescore', methods=['GET'])
+def delete_score(music_id):
+    return render_template('music/deletescore.html', music_id=music_id)
+
+@bp.route('/<int:music_id>/deletescorepost', methods=['POST'])
+def delete_score_post(music_id):
+    score = Score.query.filter_by(id=request.form['score_id']).first()
+    db.session.delete(score)
+    db.session.commit()
+    return render_template('windowclose.html')
+
+@bp.route('/score/<int:score_id>', methods=['GET'])
+def score(score_id):
+    score = Score.query.filter_by(id=score_id).first()
+    data = {}
+    data['id'] = score.id
+    data['name'] = score.score_name
+    data['content'] = json.loads(base64.b64decode(score.content.decode('utf-8')))
+    content = []
+    for i in range(len(data['content'])):
+        temp = {}
+        temp['start_time'] = data['content'][i]['start_time']
+        temp['end_time'] = data['content'][i]['end_time']
+        temp['img_data'] = data['content'][i]['file']
+        content.append(temp)
+    data['content'] = content
+    return render_template('music/score.html', score=data)
+
+@bp.route('/score/edit/<int:score_id>', methods=['POST'])
+def score_edit(score_id):
+    score = Score.query.filter_by(id=score_id).first()
+    start_times = request.form.getlist('start_time[]')
+    end_times = request.form.getlist('end_time[]')
+
+    content = json.loads(base64.b64decode(score.content.decode('utf-8')))
+    for i in range(len(content)):
+        content[i]['start_time'] = start_times[i]
+        content[i]['end_time'] = end_times[i]
+
+    score.score_name = request.form['nickname']
+    json_content = json.dumps(content)
+    score.content = base64.b64encode(json_content.encode('utf-8'))
+    db.session.commit()
+    return redirect('/music/score/' + str(score_id))

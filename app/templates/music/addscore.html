@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="auto">
+<head>
+    <script src="{{ url_for('static', filename='/js/color.js') }}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add Score</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/jumbotron/">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link href="{{ url_for('static', filename='/css/bootstrap.css') }}" rel="stylesheet">
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .b-example-divider {
+            width: 100%;
+            height: 3rem;
+            background-color: rgba(0, 0, 0, .1);
+            border: solid rgba(0, 0, 0, .15);
+            border-width: 1px 0;
+            box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+        }
+
+        .b-example-vr {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 100vh;
+        }
+
+        .bi {
+            vertical-align: -.125em;
+            fill: currentColor;
+        }
+
+        .btn-bd-primary {
+            --bd-violet-bg: #712cf9;
+            --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+            --bs-btn-font-weight: 600;
+            --bs-btn-color: var(--bs-white);
+            --bs-btn-bg: var(--bd-violet-bg);
+            --bs-btn-border-color: var(--bd-violet-bg);
+        }
+
+        .bd-mode-toggle {
+            z-index: 1500;
+        }
+
+        .bd-mode-toggle .dropdown-menu .active .bi {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+
+<main>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Add New Score</h2>
+
+        <form id="uploadForm" action="/music/{{ music_id }}/addscorepost" method="POST" enctype="multipart/form-data">
+            <div id="form-container">
+                <div class="mb-3">
+          <label for="nickname" class="form-label">name</label>
+          <input type="text" class="form-control" id="nickname" name="nickname" placeholder="Enter new lyric's name" required>
+        </div>
+                <div class="form-group">
+                    <label for="file">File Upload:</label>
+                    <input type="file" name="file[]" class="form-control mb-2" accept="image/*" required><br>
+
+                    <label for="start_time">Start Time (s):</label>
+                    <input type="number" name="start_time[]" min="0" step="1" class="form-control mb-2" required><br>
+
+                    <label for="end_time">End Time (s):</label>
+                    <input type="number" name="end_time[]" min="0" step="1" class="form-control mb-2" required>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-3">
+                <button type="button" class="btn btn-secondary" onclick="addFormGroup()">Add More</button>
+                <button type="button" class="btn btn-warning" onclick="removeFormGroup()">Remove Last</button>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Add</button>
+                <a class="btn btn-danger" onclick="window.close()">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    function addFormGroup() {
+        const formContainer = document.getElementById('form-container');
+        const newGroup = document.createElement('div');
+        newGroup.classList.add('form-group');
+        newGroup.innerHTML = `
+            <label for="file">File Upload:</label>
+            <input type="file" name="file[]" class="form-control mb-2" accept="image/*" required><br>
+            <label for="start_time">Start Time (s):</label>
+            <input type="number" name="start_time[]" min="0" step="1" class="form-control mb-2" required><br>
+            <label for="end_time">End Time (s):</label>
+            <input type="number" name="end_time[]" min="0" step="1" class="form-control mb-2" required>
+        `;
+        formContainer.appendChild(newGroup);
+    }
+
+    function removeFormGroup() {
+        const formContainer = document.getElementById('form-container');
+        const formGroups = formContainer.getElementsByClassName('form-group');
+        if (formGroups.length > 1) {
+            formContainer.removeChild(formGroups[formGroups.length - 1]);
+        } else {
+            alert("하나는 남아있어야 합니다.");
+        }
+    }
+</script>
+
+<script src="{{ url_for('static', filename='/js/bootstrap.bundle.js') }}"></script>
+</body>
+</html>

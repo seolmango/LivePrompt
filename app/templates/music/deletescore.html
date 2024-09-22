@@ -3,7 +3,7 @@
   <head><script src="{{ url_for('static', filename='/js/color.js') }}"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Detail - {{ music.title }}</title>
+    <title>Delete Score</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/jumbotron/">
 
@@ -148,119 +148,21 @@
 
 
 <main>
-<div class="container py-4">
-    <header class="pb-3 mb-4 border-bottom">
-      <a href="/" class="d-flex align-items-center text-body-emphasis text-decoration-none">
-        <span class="fs-4">Live Prompter</span>
-      </a>
-    </header>
+<div class="container mt-5">
+      <h2 class="text-center mb-4">Delete Score</h2>
 
-    <div class="container mt-5">
-    <h2 class="text-left">Music Detail</h2>
-
-    <form action="/music/edit/{{ music.id }}" method="POST" enctype="multipart/form-data">
+      <form action="/music/{{ music_id }}/deletescorepost" method="POST" enctype="multipart/form-data">
         <div class="mb-3">
-          <label for="title" class="form-label">Title</label>
-          <input type="text" class="form-control" id="title" name="title" placeholder="Enter Title" value="{{ music.title }}" required>
+          <label for="score_id" class="form-label">ID</label>
+          <input type="text" class="form-control" id="score_id" name="score_id" placeholder="Enter Score's ID" required>
         </div>
 
-        <div class="mb-3">
-          <label for="artist" class="form-label">Artist</label>
-          <input type="text" class="form-control" id="artist" name="artist" placeholder="Enter Artist" value="{{ music.artist }}" required>
-        </div>
-
-          <div class="mb-3">
-            <label for="time" class="form-label">Time</label>
-            <input type="text" class="form-control" id="time" name="time" placeholder="Enter length(s)" value="{{ music.time }}" required>
-          </div>
-
-        <button type="submit" class="btn btn-primary">Edit</button>
+        <button type="submit" class="btn btn-primary">
+            Delete
+        </button>
+        <a class="btn btn-danger" onclick="window.close()">Cancel</a>
       </form>
     </div>
-
-    <div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6">
-        <h2 class="text-center">Lyrics List</h2>
-            <table class="table table-bordered table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>미리보기</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lyric in music.lyrics %}
-                    <tr>
-                        <td>{{ lyric.id }}</td>
-                        <td><a href="/music/lyric/{{ lyric.id }}">{{ lyric.name }}</a></td>
-                        <td>{{ lyric.prev }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="3" class="text-center">No Lyrics found</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div class="d-flex justify-content-between">
-                <button class="btn btn-success" onclick="addlyrics()">가사 추가하기</button>
-                <button class="btn btn-danger" onclick="deletelyrics()">가사 삭제하기</button>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-        <h2 class="text-center">Score List</h2>
-            <table class="table table-bordered table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Page</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for score in music.scores %}
-                    <tr>
-                        <td>{{ score.id }}</td>
-                        <td><a href="/music/score/{{ score.id }}">{{ score.name }}</a></td>
-                        <td>{{ score.page }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="3" class="text-center">No Score found</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div class="d-flex justify-content-between">
-                <button class="btn btn-success" onclick="addscore()">악보 추가하기</button>
-                <button class="btn btn-danger" onclick="deletescore()">악보 삭제하기</button>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-    function addlyrics() {
-        window.open('/music/{{ music.id }}/addlyrics', '_blank', 'width=500, height=500, top=100, left=100');
-    }
-    function deletelyrics() {
-        window.open('/music/{{ music.id }}/deletelyrics', '_blank', 'width=500, height=500, top=100, left=100');
-    }
-    function addscore() {
-        window.open('/music/{{ music.id }}/addscore', '_blank', 'width=800, height=800, top=100, left=100');
-    }
-    function deletescore() {
-        window.open('/music/{{ music.id }}/deletescore', '_blank', 'width=500, height=500, top=100, left=100');
-    }
-</script>
-
-
-    <footer class="pt-3 mt-4 text-body-secondary border-top">
-      &copy 2024 by Live Prompter Team
-    </footer>
-  </div>
 </main>
 <script src="{{ url_for('static', filename='/js/bootstrap.bundle.js') }}"></script>
 
