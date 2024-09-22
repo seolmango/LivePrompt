@@ -14,12 +14,12 @@ class Music(db.Model):
 
 class LyricFiles(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    lyric_name = db.Column(db.String(128), nullable=False)
     file_music_id = db.Column(db.Integer, db.ForeignKey('music.id'), nullable=False)
-    row_file_path = db.Column(db.String(300), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    score_name = db.Column(db.String(128), nullable=False)
     score_music_id = db.Column(db.Integer, db.ForeignKey('music.id'), nullable=False)
-    row_file_path = db.Column(db.String(300), nullable=False)
     content = db.Column(db.LargeBinary, nullable=False)
