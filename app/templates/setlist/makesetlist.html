@@ -306,13 +306,10 @@
                 select.appendChild(option);
             });
 
-            // 만약 선택할 수 있는 항목이 없다면 기본 옵션 추가
-            if (select.options.length === 0) {
-                const option = document.createElement("option");
-                option.value = "0";
-                option.innerText = "----";
-                select.appendChild(option);
-            }
+            const option = document.createElement("option");
+            option.value = "0";
+            option.innerText = "----";
+            select.appendChild(option);
 
             td_row.appendChild(select);
             tr.appendChild(td_row); // select가 들어있는 td_row를 tr에 추가

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 from app import db
-from app.models import User
+from app.models import User, Setlist
+import json
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -27,6 +28,19 @@ def add_user():
 @bp.route('/deleteuser', methods=['POST'])
 def delete_user():
     user = User.query.filter_by(id=request.form['userid']).first()
+    setlists = Setlist.query.all()
+    for setlist in setlists:
+        data = json.loads(setlist.setlist_users)
+        if user.nickname in data:
+            data.remove(user.nickname)
+            setlist.setlist_users = json.dumps(data)
+            db.session.commit()
+        data = json.loads(setlist.setlist_data)
+        for song in data:
+            if request.form['userid'] in song.keys():
+                del song[request.form['userid']]
+        setlist.setlist_data = json.dumps(data)
+        db.session.commit()
     db.session.delete(user)
     db.session.commit()
     return render_template('windowclose.html')

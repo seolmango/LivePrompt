@@ -3,7 +3,7 @@ from app import db
 import base64
 import json
 import ast
-from app.models import Music, LyricFiles, Score
+from app.models import Music, LyricFiles, Score, Setlist
 bp = Blueprint('music', __name__, url_prefix='/music')
 
 @bp.route('/')
@@ -37,6 +37,19 @@ def add_music():
 @bp.route('/deletemusic', methods=['POST'])
 def delete_music():
     music = Music.query.filter_by(id=request.form['musicid']).first()
+    setlists = Setlist.query.all()
+    for setlist in setlists:
+        data = json.loads(setlist.setlist_songs)
+        if music.title in data:
+            data.remove(music.title)
+            setlist.setlist_songs = json.dumps(data)
+            db.session.commit()
+        data = json.loads(setlist.setlist_data)
+        for song in data:
+            if music.id == song['music']:
+                data.remove(song)
+        setlist.setlist_data = json.dumps(data)
+        db.session.commit()
     db.session.delete(music)
     db.session.commit()
     return render_template('windowclose.html')
@@ -94,6 +107,16 @@ def delete_lyric(music_id):
 @bp.route('/<int:music_id>/deletelyricspost', methods=['POST'])
 def delete_lyric_post(music_id):
     lyric = LyricFiles.query.filter_by(id=request.form['lyrics_id']).first()
+    setlists = Setlist.query.all()
+    for setlist in setlists:
+        data = json.loads(setlist.setlist_data)
+        for song in data:
+            if song['music'] == music_id:
+                for user in song['data']:
+                    if song['data'][user]['type'] == 'lyrics' and song['data'][user]['id'] == lyric.id:
+                        song['data'][user]['type'] = 'none'
+                        song['data'][user]['id'] = 0
+        setlist.setlist_data = json.dumps(data)
     db.session.delete(lyric)
     db.session.commit()
     return render_template('windowclose.html')
@@ -145,6 +168,16 @@ def delete_score(music_id):
 @bp.route('/<int:music_id>/deletescorepost', methods=['POST'])
 def delete_score_post(music_id):
     score = Score.query.filter_by(id=request.form['score_id']).first()
+    setlists = Setlist.query.all()
+    for setlist in setlists:
+        data = json.loads(setlist.setlist_data)
+        for song in data:
+            if song['music'] == music_id:
+                for user in song['data']:
+                    if song['data'][user]['type'] == 'score' and song['data'][user]['id'] == score.id:
+                        song['data'][user]['type'] = 'none'
+                        song['data'][user]['id'] = 0
+        setlist.setlist_data = json.dumps(data)
     db.session.delete(score)
     db.session.commit()
     return render_template('windowclose.html')

@@ -292,6 +292,10 @@
         const music = MusicList.find(music => music.title === music_name);
 
         if (music) {
+            const option = document.createElement("option");
+            option.value = "0";
+            option.innerText = "----";
+            select.appendChild(option);
             // Scores를 select에 추가
             music.scores.forEach(score => {
                 const option = document.createElement("option");
@@ -307,14 +311,6 @@
                 option.innerText = 'Lyric>'+lyric.name; // option에 표시할 이름
                 select.appendChild(option);
             });
-
-            // 만약 선택할 수 있는 항목이 없다면 기본 옵션 추가
-            if (select.options.length === 0) {
-                const option = document.createElement("option");
-                option.value = "0";
-                option.innerText = "----";
-                select.appendChild(option);
-            }
 
             td_row.appendChild(select);
             tr.appendChild(td_row); // select가 들어있는 td_row를 tr에 추가
@@ -401,10 +397,11 @@
                     for(let j = 1; j < screen_table_tbody.children[i].children.length; j++){
                         const select = screen_table_tbody.children[i].children[j].children[0];
                         if(select.value !== "0"){
-                            if(select.innerText.startsWith("Score")){
+                            let selected = select.options[select.selectedIndex];
+                            if(selected.innerText.startsWith("Score")){
                                 temp[userID[j-1]] = {"type":"score", "id":select.value};
                             }
-                            else if(select.innerText.startsWith("Lyric")){
+                            else if(selected.innerText.startsWith("Lyric")){
                                 temp[userID[j-1]] = {"type":"lyric", "id":select.value};
                             }
                         }else{
@@ -424,6 +421,7 @@
 
         // 기존 데이터를 불러와서 추가
         const tbody = document.getElementById("screen-table-tbody");
+        const screen_table_header = document.getElementById("screen-table-row1");
         for(let i=0; i<tbody.children.length; i++){
             const tr = tbody.children[i];
             const music_name = tr.children[0].innerText;
@@ -431,17 +429,31 @@
             if(music){
                 for(let j=1; j<tr.children.length; j++){
                     const select = tr.children[j].children[0];
-                    const user = UserList.find(user => user.name === select.innerText);
+                    const user = UserList.find(user => user.name === screen_table_header.children[j].innerText);
                     if(user){
                         const data = beforeData.find(data => data.music === music.id);
                         if(data){
                             const score = data.data[user.id];
                             if(score){
                                 if(score.type === "score"){
-                                    select.value = score.id;
+                                    for(let k=0; k<select.children.length; k++){
+                                        if(select.children[k].value === score.id && select.children[k].innerText.startsWith("Score")){
+                                            select.children[k].selected = true;
+                                        }
+                                    }
                                 }
                                 else if(score.type === "lyric"){
-                                    select.value = score.id;
+                                    for(let k=0; k<select.children.length; k++){
+                                        if(select.children[k].value === score.id && select.children[k].innerText.startsWith("Lyric")){
+                                            select.children[k].selected = true;
+                                        }
+                                    }
+                                }else{
+                                    for(let k=0; k<select.children.length; k++){
+                                        if(select.children[k].value === "0"){
+                                            select.children[k].selected = true;
+                                        }
+                                    }
                                 }
                             }
                         }
