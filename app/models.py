@@ -8,8 +8,8 @@ class Music(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(128), nullable=False)
     artist = db.Column(db.String(128), nullable=False)
-    lyrics = db.relationship('LyricFiles', backref='music', lazy=True)
-    scores = db.relationship('Score', backref='music', lazy=True)
+    lyrics = db.relationship('LyricFiles', backref='music', lazy=True, cascade="all, delete-orphan")
+    scores = db.relationship('Score', backref='music', lazy=True, cascade="all, delete-orphan")
     length = db.Column(db.Integer, nullable=False)
 
 class LyricFiles(db.Model):
