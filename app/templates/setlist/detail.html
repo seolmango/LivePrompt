@@ -373,6 +373,14 @@
                 alert("Please enter the name of the setlist");
                 return;
             }
+            if(addedUser.length === 0){
+                alert("Please add at least one user");
+                return;
+            }
+            if(addedMusic.length === 0){
+                alert("Please add at least one music");
+                return;
+            }
             const form = document.getElementById("uploadForm");
             const data = [];
             const users = []
