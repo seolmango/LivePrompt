@@ -44,10 +44,6 @@ def run():
 
 @bp.route('/')
 def index():
-    if len(status['sockets']) == 1:
-        Users = User.query.all()
-        for user in Users:
-            status['sockets'][user.id] = []
     setlists = Setlist.query.all()
     data = []
     for setlist in setlists:
@@ -67,6 +63,15 @@ def serve_file(filename):
     else:
         return 'File not found', 404
 
+@bp.route('/screen/<id>')
+def screen(id):
+    user = User.query.filter_by(id=id).first()
+    data = {
+        'id': user.id,
+        'nickname': user.nickname
+    }
+    return render_template('control/screen.html', user=data)
+
 @socket.on('disconnect')
 def disconnect():
     if request.sid in status['sockets']:
@@ -84,14 +89,16 @@ def control_init():
 
 @socket.on('screen_init')
 def screen_init(id):
+    if id not in status['sockets']:
+        status['sockets'][id] = []
+    status['sockets'][id].append(request.sid)
     if status['setlist'] is None:
         emit('none_setlist')
         return
-    if id not in status['datas'].keys():
+    if str(id) not in status['datas'].keys():
         emit('not_include')
         return
-    status['sockets'][id].append(request.sid)
-    emit('init_data', [status['datas'][id], status['music_index'], status['time'], status['is_playing']])
+    emit('init_data', [status['datas'][str(id)], status['music_index'], status['time'], status['is_playing']])
 
 @socket.on('control_start')
 def control_start():
@@ -180,9 +187,9 @@ def control_set_list(id):
     status['time'] = 0
 
     for user in status['sockets'].keys():
-        if user in status['datas'].keys():
+        if str(user) in status['datas'].keys():
             for s in status['sockets'][user]:
-                emit('init_data', [status['datas'][user], status['music_index'], status['time'], status['is_playing']], room=s)
+                emit('init_data', [status['datas'][str(user)], status['music_index'], status['time'], status['is_playing']], room=s)
         else:
             for s in status['sockets'][user]:
                 emit('not_include', room=s)

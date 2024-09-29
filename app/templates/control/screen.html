@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ko" data-bs-theme="auto">
+  <head>
+    <script src="{{ url_for('static', filename='/js/color.js') }}"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Live > {{ user.nickname }}</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link href="{{ url_for('static', filename='/css/bootstrap.css') }}" rel="stylesheet">
+<style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+
+      .b-example-divider {
+        width: 100%;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, .1);
+        border: solid rgba(0, 0, 0, .15);
+        border-width: 1px 0;
+        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+      }
+      .contentcontain {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* 요소 간 공간을 균등 분배 */
+  align-items: center; /* 수직 정렬 */
+}
+
+
+      .b-example-vr {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 100vh;
+      }
+
+      .bi {
+        vertical-align: -.125em;
+        fill: currentColor;
+      }
+
+      .nav-scroller {
+        position: relative;
+        z-index: 2;
+        height: 2.75rem;
+        overflow-y: hidden;
+      }
+
+      .nav-scroller .nav {
+        display: flex;
+        flex-wrap: nowrap;
+        padding-bottom: 1rem;
+        margin-top: -1px;
+        overflow-x: auto;
+        text-align: center;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .btn-bd-primary {
+        --bd-violet-bg: #712cf9;
+        --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+        --bs-btn-font-weight: 600;
+        --bs-btn-color: var(--bs-white);
+        --bs-btn-bg: var(--bd-violet-bg);
+        --bs-btn-border-color: var(--bd-violet-bg);
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: #6528e0;
+        --bs-btn-hover-border-color: #6528e0;
+        --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+        --bs-btn-active-color: var(--bs-btn-hover-color);
+        --bs-btn-active-bg: #5a23c8;
+        --bs-btn-active-border-color: #5a23c8;
+      }
+
+      .bd-mode-toggle {
+        z-index: 1500;
+      }
+
+      .bd-mode-toggle .dropdown-menu .active .bi {
+        display: block !important;
+      }
+    </style>
+    <style>
+      .playlist-container {
+        height: 400px;
+        overflow-y: scroll;
+        border-right: 1px solid #ddd;
+      }
+      .current-song-container {
+        padding: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+  <body>
+    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+      <symbol id="check2" viewBox="0 0 16 16">
+        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+      </symbol>
+      <symbol id="circle-half" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+      </symbol>
+      <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+        <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+        <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+      </symbol>
+      <symbol id="sun-fill" viewBox="0 0 16 16">
+        <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+      </symbol>
+    </svg>
+
+    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+      <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
+              id="bd-theme"
+              type="button"
+              aria-expanded="false"
+              data-bs-toggle="dropdown"
+              aria-label="Toggle theme (auto)">
+        <svg class="bi my-1 theme-icon-active" width="1em" height="1em"><use href="#circle-half"></use></svg>
+        <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+            <svg class="bi me-2 opacity-50" width="1em" height="1em"><use href="#sun-fill"></use></svg>
+            Light
+            <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+            <svg class="bi me-2 opacity-50" width="1em" height="1em"><use href="#moon-stars-fill"></use></svg>
+            Dark
+            <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+            <svg class="bi me-2 opacity-50" width="1em" height="1em"><use href="#circle-half"></use></svg>
+            Auto
+            <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+          </button>
+        </li>
+      </ul>
+    </div>
+    <main>
+      <div class="container py-4">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="playlist-container mb-4">
+                <h3>Playlist</h3>
+                <ul class="list-group" id="playlist">
+                </ul>
+              </div>
+                <div class="current-song-container">
+            <h3 id="current-status">Now Playing</h3>
+            <div id="current-song-info">
+              <p id="current-title">Title: None</p>
+              <p id="current-artist">Artist: None</p>
+            </div>
+
+            <div class="progress">
+              <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p id="current-time">00:00</p>
+          </div>
+            </div>
+            <div class="col-md-7" id="contentcontain">
+
+            </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+        const status = {
+            'music_index': -1,
+            'is_playing': false,
+            'time': 0,
+            'duration': 0,
+            'setlist_length': 0,
+            'data': []
+        }
+        let temp_data = [];
+        let temp_index = -1;
+        let temp_last_update = -1;
+
+        const socket = io();
+
+        socket.emit('screen_init', {{ user.id }});
+
+        socket.on('init_data', (data) => {
+            let data_url = data[0];
+            status['music_index'] = data[1];
+            status['time'] = data[2];
+            status['is_playing'] = data[3];
+
+            fetch(data_url).then(response => response.json()).then(data => {
+                status['data'] = data;
+                status['setlist_length'] = data.length;
+                status['duration'] = data[status['music_index']].duration;
+                update_UI();
+                update_list();
+            });
+        })
+
+        socket.on('start', () => {
+            status['is_playing'] = true;
+            update_UI();
+        })
+
+        socket.on('stop', () => {
+            status['is_playing'] = false;
+            update_UI();
+        })
+
+        socket.on('next', () => {
+            status['music_index'] = (status['music_index'] + 1) % status['setlist_length'];
+            status['duration'] = status['data'][status['music_index']].duration;
+            update_UI();
+        })
+
+        socket.on('prev', () => {
+            status['music_index'] = (status['music_index'] - 1 + status['setlist_length']) % status['setlist_length'];
+            status['duration'] = status['data'][status['music_index']].duration;
+            update_UI();
+        })
+
+        socket.on('set_index', (index) => {
+            status['music_index'] = index;
+            update_UI();
+        })
+
+        socket.on('time_update', (time) => {
+            status['time'] = time;
+            update_UI();
+        })
+
+        socket.on('none_setlist', () => {
+            status['music_index'] = -1;
+            status['is_playing'] = false;
+            status['time'] = 0;
+            status['duration'] = 0;
+            status['data'] = [];
+            status['setlist_length'] = 0;
+            update_UI();
+            update_list();
+        })
+
+        socket.on('not_include', () => {
+            status['music_index'] = -1;
+            status['is_playing'] = false;
+            status['time'] = 0;
+            status['duration'] = 0;
+            status['data'] = [];
+            status['setlist_length'] = 0;
+            update_UI();
+            update_list();
+        })
+
+        function update_UI() {
+            if(status['music_index'] === -1){
+                document.getElementById('current-title').innerText = 'Title: None';
+                document.getElementById('current-artist').innerText = 'Artist: None';
+                document.getElementById('progress-bar').style.width = '0%';
+                document.getElementById('current-time').innerText = '00:00 / 00:00';
+                document.getElementById('current-status').innerText = 'Now Playing';
+                document.getElementById('contentcontain').innerHTML = '';
+                return;
+            }
+            const song = status['data'][status['music_index']];
+            document.getElementById('current-title').innerText = `Title: ${song.title}`;
+            document.getElementById('current-artist').innerText = `Artist: ${song.artist}`;
+
+            // Update progress bar
+            document.getElementById('progress-bar').style.width = `${status['time'] / song.duration * 100}%`;
+
+            // Calculate and display current time and total duration
+            const currentTime = `${Math.floor(status['time'] / 60)}:${String(status['time'] % 60).padStart(2, '0')}`;
+            const totalDuration = `${Math.floor(song.duration / 60)}:${String(song.duration % 60).padStart(2, '0')}`;
+            document.getElementById('current-time').innerText = `${currentTime} / ${totalDuration}`;
+            // Update current status
+            document.getElementById('current-status').innerText = status['is_playing'] ? 'Now Playing' : 'Paused';
+
+            if(status['data'][status['music_index']].type === 'score'){
+                if(status['music_index'] !== temp_index){
+                    temp_data = status['data'][status['music_index']].content;
+                    temp_index = status['music_index'];
+                    temp_last_update = -1;
+                }
+                for(let i = 0; i < temp_data.length; i++){
+                    if(status['time'] >= temp_data[i].start_time && status['time'] <= temp_data[i].end_time && temp_last_update !== i){
+                        temp_last_update = i;
+                        document.getElementById('contentcontain').innerHTML = `<img src="${temp_data[i].file}" style="width: 100%; height: auto;">`;
+                        break;
+                    }else if(status['time'] >= temp_data[i].start_time && status['time'] > temp_data[i].end_time && temp_last_update === i){
+                        document.getElementById('contentcontain').innerHTML = '';
+                    }
+                }
+            }else if(status['data'][status['music_index']].type === 'lyric'){
+                if(status['music_index'] !== temp_index){
+                    temp_data = lyric_data(status['data'][status['music_index']].content);
+                    temp_index = status['music_index'];
+                    temp_last_update = -1;
+                }
+                for(let i = 0; i < temp_data.length; i++){
+                    if(status['time'] >= temp_data[i].start_time && status['time'] <= temp_data[i].end_time && temp_last_update !== i){
+                        temp_last_update = i;
+                        let lyric = '';
+                        lyric += `<span style="font-weight: bold; font-size: 6vw">${temp_data[i].lyric}</span><br>`;
+                        if(i + 1 < temp_data.length){
+                            lyric += `<span style="font-size: 2vw">${temp_data[i + 1].lyric}</span>`;
+                        }
+                        document.getElementById('contentcontain').innerHTML = lyric;
+                        break;
+                    }else if(status['time'] >= temp_data[i].start_time && status['time'] > temp_data[i].end_time && temp_last_update === i){
+                        document.getElementById('contentcontain').innerHTML = '';
+                    }
+                }
+            }else{
+                document.getElementById('contentcontain').innerHTML = '';
+            }
+}
+
+
+        function update_list(){
+            const playlist = document.getElementById('playlist');
+            playlist.innerHTML = '';
+            status['data'].forEach((song, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `${song.title} - ${song.artist}`;
+                playlist.appendChild(li);
+            });
+        }
+
+        function lyric_data(data){
+            let result = [];
+            let temp = data.split('\r\n\r\n');
+            for(let i = 0; i < temp.length; i++){
+                let time = temp[i].split('\r\n')[0].split(' -- ');
+                let lyric = temp[i].split('\r\n')[1];
+                result.push({
+                    'start_time': time[0],
+                    'end_time': time[1],
+                    'lyric': lyric
+                });
+            }
+            console.log(result);
+            return result;
+        }
+
+    </script>
+
+    <script src="{{ url_for('static', filename='/js/bootstrap.bundle.js') }}"></script>
+  </body>
+</html>

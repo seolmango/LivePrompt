@@ -30,12 +30,13 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from .views import main, user, music, setlist, control
+    from .views import main, user, music, setlist, control, live
     app.register_blueprint(main.bp)
     app.register_blueprint(user.bp)
     app.register_blueprint(music.bp)
     app.register_blueprint(setlist.bp)
     app.register_blueprint(control.bp)
+    app.register_blueprint(live.bp)
 
     socket.init_app(app)
     return app  # Return app here
