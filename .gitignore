@@ -1,4 +1,4 @@
 *.db
 migrations/
 .idea/
-static/
+static/json/*.json

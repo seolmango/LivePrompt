@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, request, redirect
 from app import db
 import base64
 import json
-import ast
 from app.models import Music, LyricFiles, Score, Setlist
 bp = Blueprint('music', __name__, url_prefix='/music')
 

@@ -245,6 +245,8 @@ def data_make(id):
                     'content': None
                 })
 
+    if not os.path.exists(current_app.config['JSON_FOLDER']):
+        os.makedirs(current_app.config['JSON_FOLDER'])
     for file in os.listdir(current_app.config['JSON_FOLDER']):
         os.remove(os.path.join(current_app.config['JSON_FOLDER'], file))
 
