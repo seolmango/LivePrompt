@@ -14,7 +14,7 @@ migrate = Migrate()
 db.init_app(app)
 migrate.init_app(app, db)
 
-socket = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app, async_mode='eventlet')
 
 from models.views import main, user, music, setlist, control, live
 app.register_blueprint(main.bp)
@@ -25,4 +25,4 @@ app.register_blueprint(control.bp)
 app.register_blueprint(live.bp)
 
 if __name__ == '__main__':
-    socket.run(app, host='0.0.0.0', port=8000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=8000, debug=True)
