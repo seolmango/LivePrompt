@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect
-from app import db
+from run import db
 import base64
 import json
 from models.models import Music, LyricFiles, Score, Setlist
