@@ -2,3 +2,4 @@
 migrations/
 .idea/
 static/json/*.json
+.venv/
