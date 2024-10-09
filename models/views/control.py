@@ -1,11 +1,26 @@
 import base64
 from flask import Blueprint, render_template, send_from_directory, current_app, request
-from run import socket, status
+from run import socket
 from flask_socketio import emit
 import os, json
 from models.models import Setlist, Music, User, Score, LyricFiles
 import time
 from threading import Thread
+
+
+status = {
+    'setlist': None,
+    'music_index': None,
+    'setlist_length': None,
+    'time': None,
+    'time_length': None,
+    'is_playing': False,
+    'datas' : {},
+    'sockets' : {
+        'control': []
+    },
+    'lock' : None
+}
 
 bp = Blueprint('control', __name__, url_prefix='/control')
 
