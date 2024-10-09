@@ -1,6 +1,6 @@
 import base64
 from flask import Blueprint, render_template, send_from_directory, current_app, request
-from models import socket, status
+from app import socket, status
 from flask_socketio import emit
 import os, json
 from models.models import Setlist, Music, User, Score, LyricFiles

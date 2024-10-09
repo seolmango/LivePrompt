@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from models import db
+from app import db
 from models.models import User, Setlist
 import json
 
