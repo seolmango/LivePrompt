@@ -1,1 +1,1 @@
-web: gunicorn --worker-class eventlet -w 1 run:socketio -b 0.0.0.0:$PORT
+web: gunicorn --worker-class eventlet -w 1 -b 0.0.0.0:$PORT wsgi:application
