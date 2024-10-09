@@ -5,8 +5,7 @@ from flask_socketio import emit
 import os, json
 from models.models import Setlist, Music, User, Score, LyricFiles
 import time
-from threading import Thread
-
+from threading import Thread, Event
 
 status = {
     'setlist': None,
@@ -15,14 +14,15 @@ status = {
     'time': None,
     'time_length': None,
     'is_playing': False,
-    'datas' : {},
-    'sockets' : {
+    'datas': {},
+    'sockets': {
         'control': []
     },
-    'lock' : None
+    'lock': None
 }
 
 bp = Blueprint('control', __name__, url_prefix='/control')
+
 
 def save_json_to_file(data, filename):
     if not os.path.exists(current_app.config['JSON_FOLDER']):
@@ -35,27 +35,33 @@ def save_json_to_file(data, filename):
 
     return fake_file_path
 
-def run():
-    while True:
-        if status['is_playing']:
-            time.sleep(1)
-            if status['time'] < status['time_length'][status['music_index']]:
+
+def run(stop_event):
+    last_time = time.time()
+    while not stop_event.is_set():
+        current_time = time.time()
+        elapsed = current_time - last_time
+        if elapsed >= 1.0:
+            last_time += 1.0
+            if status['is_playing']:
                 status['time'] += 1
                 for user in status['sockets'].keys():
                     for s in status['sockets'][user]:
                         socket.emit('time_update', status['time'], room=s)
-            else:
-                if status['music_index'] == status['setlist_length'] - 1:
-                    status['music_index'] = 0
-                else:
-                    status['music_index'] += 1
-                status['time'] = 0
-                for user in status['sockets'].keys():
-                    for s in status['sockets'][user]:
-                        socket.emit('next', room=s)
-                        socket.emit('time_update', 0, room=s)
+
+                if status['time'] >= status['time_length'][status['music_index']]:
+                    if status['music_index'] == status['setlist_length'] - 1:
+                        status['music_index'] = 0
+                    else:
+                        status['music_index'] += 1
+                    status['time'] = 0
+                    for user in status['sockets'].keys():
+                        for s in status['sockets'][user]:
+                            socket.emit('next', room=s)
+                            socket.emit('time_update', 0, room=s)
         else:
-            break
+            time.sleep(0.1)
+
 
 @bp.route('/')
 def index():
@@ -68,15 +74,17 @@ def index():
         })
     return render_template('control/index.html', setlists=data)
 
+
 @bp.route('/file/<filename>')
 def serve_file(filename):
-    if(filename == ''):
+    if (filename == ''):
         return 'File not found', 404
     file_list = os.listdir(current_app.config['JSON_FOLDER'])
     if filename in file_list:
         return send_from_directory(current_app.config['JSON_FOLDER'], filename)
     else:
         return 'File not found', 404
+
 
 @bp.route('/screen/<id>')
 def screen(id):
@@ -87,12 +95,14 @@ def screen(id):
     }
     return render_template('control/screen.html', user=data)
 
+
 @socket.on('disconnect')
 def disconnect():
     if request.sid in status['sockets']:
         for user in status['sockets'].keys():
             if request.sid in status['sockets'][user]:
                 status['sockets'][user].remove(request.sid)
+
 
 @socket.on('control_init')
 def control_init():
@@ -101,6 +111,7 @@ def control_init():
         emit('none_setlist')
         return
     emit('init_data', [status['datas']['control'], status['music_index'], status['time'], status['is_playing']])
+
 
 @socket.on('screen_init')
 def screen_init(id):
@@ -115,20 +126,36 @@ def screen_init(id):
         return
     emit('init_data', [status['datas'][str(id)], status['music_index'], status['time'], status['is_playing']])
 
+
+# 전역으로 타이머와 이벤트를 관리
+stop_event = Event()
+timer_thread = None
+
+
 @socket.on('control_start')
 def control_start():
-    status['is_playing'] = True
-    Thread(target=run).start()
-    for user in status['sockets'].keys():
-        for s in status['sockets'][user]:
-            emit('start', room=s)
+    global timer_thread, stop_event
+    if not status['is_playing']:
+        status['is_playing'] = True
+        stop_event.clear()
+        timer_thread = Thread(target=run, args=(stop_event,))
+        timer_thread.start()
+        for user in status['sockets'].keys():
+            for s in status['sockets'][user]:
+                emit('start', room=s)
+
 
 @socket.on('control_stop')
 def control_stop():
-    status['is_playing'] = False
-    for user in status['sockets'].keys():
-        for s in status['sockets'][user]:
-            emit('stop', room=s)
+    global stop_event
+    if status['is_playing']:
+        status['is_playing'] = False
+        stop_event.set()
+        if timer_thread:
+            timer_thread.join()
+        for user in status['sockets'].keys():
+            for s in status['sockets'][user]:
+                emit('stop', room=s)
 
 
 @socket.on('control_next')
@@ -139,6 +166,9 @@ def control_next():
         status['music_index'] += 1
     status['time'] = 0
     status['is_playing'] = False
+    stop_event.set()
+    if timer_thread:
+        timer_thread.join()
     for user in status['sockets'].keys():
         for s in status['sockets'][user]:
             emit('next', room=s)
@@ -155,6 +185,9 @@ def control_prev():
             status['music_index'] -= 1
         status['time'] = 0
         status['is_playing'] = False
+        stop_event.set()
+        if timer_thread:
+            timer_thread.join()
         for user in status['sockets'].keys():
             for s in status['sockets'][user]:
                 emit('prev', room=s)
@@ -163,6 +196,9 @@ def control_prev():
     else:
         status['time'] = 0
         status['is_playing'] = False
+        stop_event.set()
+        if timer_thread:
+            timer_thread.join()
         for user in status['sockets'].keys():
             for s in status['sockets'][user]:
                 emit('time_update', 0, room=s)
@@ -174,20 +210,28 @@ def control_set_index(index):
     status['music_index'] = index
     status['time'] = 0
     status['is_playing'] = False
+    stop_event.set()
+    if timer_thread:
+        timer_thread.join()
     for user in status['sockets'].keys():
         for s in status['sockets'][user]:
             emit('set_index', index, room=s)
             emit('time_update', 0, room=s)
             emit('stop', room=s)
 
+
 @socket.on('control_set_list')
 def control_set_list(id):
+    global timer_thread, stop_event
     if id == '0':
         status['setlist'] = None
         status['setlist_length'] = None
         status['is_playing'] = False
         status['music_index'] = 0
         status['time'] = 0
+        stop_event.set()
+        if timer_thread:
+            timer_thread.join()
         for user in status['sockets'].keys():
             for s in status['sockets'][user]:
                 emit('none_setlist', room=s)
@@ -201,13 +245,19 @@ def control_set_list(id):
     status['music_index'] = 0
     status['time'] = 0
 
+    stop_event.set()
+    if timer_thread:
+        timer_thread.join()
+
     for user in status['sockets'].keys():
         if str(user) in status['datas'].keys():
             for s in status['sockets'][user]:
-                emit('init_data', [status['datas'][str(user)], status['music_index'], status['time'], status['is_playing']], room=s)
+                emit('init_data',
+                     [status['datas'][str(user)], status['music_index'], status['time'], status['is_playing']], room=s)
         else:
             for s in status['sockets'][user]:
                 emit('not_include', room=s)
+
 
 def data_make(id):
     setlist = Setlist.query.filter_by(id=id).first()
@@ -265,7 +315,7 @@ def data_make(id):
     for file in os.listdir(current_app.config['JSON_FOLDER']):
         os.remove(os.path.join(current_app.config['JSON_FOLDER'], file))
 
-    data ={}
+    data = {}
     control_file = save_json_to_file(control_Data, 'control.json')
     data['control'] = control_file
     for i, user in enumerate(users_list):
