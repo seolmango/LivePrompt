@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request
-from app import db
-from app.models import User, Setlist
+from models import db
+from models.models import User, Setlist
 import json
 
 bp = Blueprint('user', __name__, url_prefix='/user')

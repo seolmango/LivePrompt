@@ -16,7 +16,7 @@ migrate.init_app(app, db)
 
 socket = SocketIO(app)
 
-from app.views import main, user, music, setlist, control, live
+from models.views import main, user, music, setlist, control, live
 app.register_blueprint(main.bp)
 app.register_blueprint(user.bp)
 app.register_blueprint(music.bp)

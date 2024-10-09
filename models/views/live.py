@@ -1,5 +1,5 @@
 from flask import blueprints, render_template
-from app.models import User
+from models.models import User
 
 bp = blueprints.Blueprint('live', __name__, url_prefix='/live')
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect
-from app import db
-from app.models import Music, User, Setlist
+from models import db
+from models.models import Music, User, Setlist
 import json
 
 
