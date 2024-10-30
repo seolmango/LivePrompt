@@ -22,6 +22,6 @@ python-socketio==5.11.4
 simple-websocket==1.0.0
 SQLAlchemy==2.0.35
 typing_extensions==4.12.2
-waitress==3.0.0
+waitress==3.0.1
 Werkzeug==3.0.4
 wsproto==1.2.0
