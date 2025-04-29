@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
@@ -7,6 +7,11 @@ import config
 
 app = Flask(__name__, template_folder='models/templates', static_folder='models/static')
 app.config.from_object(config)
+
+@app.before_request
+def enforce_https():
+    if not request.is_secure:
+        return redirect(request.url.replace("http://", "https://", 1), code=301)
 
 db = SQLAlchemy()
 migrate = Migrate()
